@@ -1,0 +1,156 @@
+POST http://127.0.0.1:8000/api/users/
+Content-Type: application/json
+
+{
+    "email": "test@test.ru",
+    "username": "test.test",
+    "first_name": "test",
+    "last_name": "test",
+    "password": "MySecretPas$word"
+}
+
+###
+DELETE http://127.0.0.1:8000/api/users/2/
+###
+GET http://127.0.0.1:8000/api/users/
+###
+POST http://127.0.0.1:8000/api/auth/token/login/
+Content-Type: application/json
+
+{
+    "email": "test@test.ru",
+    "password": "MySecretPas$word"
+}
+###
+GET http://127.0.0.1:8000/api/users/me/
+Content-Type: application/json
+Authorization: Token b74f957128ad893176842f5bb122767abf56ef8c
+###
+GET http://127.0.0.1:8000/api/users/me/
+###
+POST http://127.0.0.1:8000/api/users/set_password/
+Content-Type: application/json
+Authorization: Token 34d76f945497faac9c92d0317ad8552b6aa935f3
+
+{
+    "current_password": "Qq2522fes",
+    "new_password": "MySecretPas$word"
+}
+###
+POST http://127.0.0.1:8000/api/tags/
+Content-Type: application/json
+Authorization: Token a13052a8221af30ca58cc85c93bddafec1834091
+
+{
+    "name": "Завтрак",
+    "color": "#FFFFFF",
+    "slug": "breakfast"
+}
+###
+GET http://127.0.0.1:8000/api/tags/
+###
+GET http://127.0.0.1:8000/api/recipes/
+###
+POST http://127.0.0.1:8000/api/recipes/
+Content-Type: application/json
+Authorization: Token 1da3efe3919dfb977602d014d5769abd7142e4b8
+
+{
+    "ingredients": [
+        {
+            "id": 1,
+            "amount": 10
+        },
+        {
+            "id": 2,
+            "amount": 20
+        }
+    ],
+    "tags": [
+        1,
+        2
+    ],
+    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+    "name": "Нечто съедобное (это не точно)",
+    "text": "Приготовьте как нибудь эти ингредиеты",
+    "cooking_time": 5
+}
+###
+GET http://127.0.0.1:8000/api/recipes/?tag=test_slug2&tag=breakfast
+Authorization: Token 37d1f61cb4b3b5ae5558b34ee385de923fe60240
+###
+GET http://127.0.0.1:8000/api/recipes/?tags=test_slug2&tags=test_slug3
+Authorization: Token ee04f743da79fa963a7f83c42c84ed12f95f22a5
+###
+PATCH  http://127.0.0.1:8000/api/recipes/96/
+Content-Type: application/json
+Authorization: Token ee04f743da79fa963a7f83c42c84ed12f95f22a5
+
+{
+    "ingredients": [
+        {
+            "id": 1,
+            "amount": 25
+        }
+    ],
+    "tags": [
+        2
+    ],
+    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+    "name": "Обновление чужого рецепта",
+    "text": "Проверка прав доступа.",
+    "cooking_time": 12
+}
+###
+DELETE  http://127.0.0.1:8000/api/users/4/subscribe/
+Authorization: Token ee04f743da79fa963a7f83c42c84ed12f95f22a5
+###
+POST http://127.0.0.1:8000/api/recipes/
+Content-Type: application/json
+Authorization: Token 6b539e7ec588315fc2c2bc3390e3087d43fadb11
+
+{
+    "ingredients": [
+        {
+            "id": 1,
+            "amount": 3
+        },
+        {
+            "id": 2,
+            "amount": 5
+        }
+    ],
+    "tags": [
+        1,
+        2
+    ],
+    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+    "name": "testrecipe",
+    "text": "testtext",
+    "cooking_time": 3
+}
+###
+GET http://127.0.0.1:8000/api/recipes/7/
+Authorization: Token f02b5dbc17baaf4be5576fdf3ebfd259d5d4817f
+###
+DELETE http://127.0.0.1:8000/api/recipes/7/
+Authorization: Token ef0ec86969e99e260adb8eee1f5179480047f06d
+###
+POST http://127.0.0.1:8000/api/tags/
+Content-Type: application/json
+Authorization: Token c7d49ac482472b832daad6333ea25b26e7d921f6
+
+{
+    "name": "Завтрак",
+    "color": "#E26CFD",
+    "slug": "breakfast"
+}
+###
+GET http://127.0.0.1:8000/api/recipes/download_shopping_cart/
+Authorization: Token 6b539e7ec588315fc2c2bc3390e3087d43fadb11
+###
+GET http://127.0.0.1:8000/api/recipes/
+Authorization: Token 6b539e7ec588315fc2c2bc3390e3087d43fadb11
+###
+POST http://127.0.0.1:8000/api/recipes/7/shopping_cart/
+Authorization: Token 6b539e7ec588315fc2c2bc3390e3087d43fadb11
