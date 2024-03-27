@@ -1,15 +1,12 @@
-import webcolors
 import base64
 
-from django.core.files.base import ContentFile
-from rest_framework import serializers
+import webcolors
 from django.contrib.auth import get_user_model
-
-from foodgram.models import (
-    Recipe, Tag, Ingredient, IngredientRecipe,
-    Favorite, ShoppingCart, TagRecipe, Follow
-)
-from users.serializers import CustomUserSerializer, BasicUserSerializer
+from django.core.files.base import ContentFile
+from foodgram.models import (Favorite, Follow, Ingredient, IngredientRecipe,
+                             Recipe, ShoppingCart, Tag, TagRecipe)
+from rest_framework import serializers
+from users.serializers import BasicUserSerializer, CustomUserSerializer
 
 User = get_user_model()
 

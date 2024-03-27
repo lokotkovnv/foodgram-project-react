@@ -1,9 +1,8 @@
 from django.urls import include, path
+from foodgram.views import (DownloadShoppingCartView, FavoriteApiView,
+                            IngredientViewSet, RecipeViewSet,
+                            ShoppingCartAPIView, TagViewSet)
 from rest_framework.routers import DefaultRouter
-from foodgram.views import (
-    IngredientViewSet, RecipeViewSet, TagViewSet,
-    ShoppingCartAPIView, FavoriteApiView, DownloadShoppingCartView
-)
 
 router = DefaultRouter()
 router.register(r'tags', TagViewSet)

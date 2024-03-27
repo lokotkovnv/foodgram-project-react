@@ -1,20 +1,17 @@
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
-from rest_framework import viewsets
-from rest_framework.generics import ListAPIView
-
-from users.serializers import UserListSerializer
-from users.serializers import FollowSerializer
-from users.serializers import CustomUserSerializer, BasicUserSerializer
 from foodgram.models import Follow, Recipe
+from foodgram.serializers import (SubscriptionUserSerializer,
+                                  UserRecipeSerializer)
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from users.serializers import (BasicUserSerializer, CustomUserSerializer,
+                               FollowSerializer, UserListSerializer)
+
 from backend.pagination import LimitPageNumberPagination
-from foodgram.serializers import (UserRecipeSerializer,
-                                  SubscriptionUserSerializer)
 
 User = get_user_model()
 
@@ -48,8 +45,8 @@ class CustomUserViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(
-            detail=True, methods=['post'],
-            permission_classes=(IsAuthenticated,)
+        detail=True, methods=['post'],
+        permission_classes=(IsAuthenticated,)
     )
     def subscribe(self, request, id=None):
         user = request.user

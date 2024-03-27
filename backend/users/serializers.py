@@ -1,12 +1,10 @@
 import re
+
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
-from rest_framework.validators import UniqueTogetherValidator
-
 from foodgram.models import Follow
-
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
 SELF_FOLLOW_ERROR = 'Вы не можете подписаться на самого себя.'
 UNIQUE_FOLLOW_ERROR = 'Вы уже подписаны на этого пользователя.'

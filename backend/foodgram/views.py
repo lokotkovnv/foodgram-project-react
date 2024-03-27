@@ -1,25 +1,20 @@
-from rest_framework import viewsets, permissions
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.views import APIView
 from django.db.models import Sum
 from django.http import HttpResponse
-from rest_framework.permissions import IsAuthenticated
-
-
-from foodgram.models import (
-    Recipe, Tag, Ingredient, ShoppingCart, Favorite, IngredientRecipe
-)
-from foodgram.serializers import (
-    TagSerializer, CreateRecipeSerializer,
-    ShowRecipeSerializer, IngredientSerializer
-)
-from backend.pagination import LimitPageNumberPagination
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from foodgram.filters import IngredientFilter, RecipeFilter
+from foodgram.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                             ShoppingCart, Tag)
+from foodgram.serializers import (CreateRecipeSerializer, IngredientSerializer,
+                                  ShowRecipeSerializer, TagSerializer)
+from rest_framework import permissions, status, viewsets
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from backend.pagination import LimitPageNumberPagination
 from backend.permissions import IsAdminOrReadOnly
 
 
