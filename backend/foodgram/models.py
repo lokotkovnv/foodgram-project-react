@@ -129,7 +129,7 @@ class Favorite(models.Model):
 
     class Meta:
         ordering = ('-when_added',)
-        verbose_name = 'Список покупок'
+        verbose_name = 'Избранное'
         verbose_name_plural = verbose_name
         unique_together = ('user', 'recipe')
 
