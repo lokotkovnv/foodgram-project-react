@@ -2,11 +2,15 @@ import os
 
 import django
 import pandas as pd
+from foodgram.models import \
+    Ingredient  # Для запуска скрипта - импортировать после настройки среды
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
 
+'''
 from foodgram.models import Ingredient
+'''
 
 
 class LoadData:
