@@ -6,5 +6,5 @@ webcolors==1.11.1
 django-filter==21.1
 psycopg2-binary==2.9.3
 flake8==6.0.0
-flake8-isort==6.0.0
+flake8-isort==6.1.1
 pandas==2.2.1

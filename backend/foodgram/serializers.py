@@ -1,6 +1,7 @@
 import base64
 
 import webcolors
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from foodgram.models import (Favorite, Follow, Ingredient, IngredientRecipe,
@@ -171,9 +172,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, value):
         ingredient_ids = [ingredient['id'] for ingredient in value]
+        ingredient_amounts = [ingredient['amount'] for ingredient in value]
         if len(ingredient_ids) != len(set(ingredient_ids)):
             raise serializers.ValidationError(
                 'Ингредиенты не должны повторяться'
+            )
+        if ingredient_amounts and min(
+            ingredient_amounts
+        ) < settings.INGREDIENT_MIN_VALUE:
+            raise serializers.ValidationError(
+                'Количество ингредиентов должно быть не меньше 1'
             )
         return value
 
@@ -183,9 +191,13 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return value
 
     def validate_cooking_time(self, value):
-        if value < 1:
+        if value < settings.RECIPE_MIN_COOKING_TIME:
             raise serializers.ValidationError(
                 'Время готовки должно быть не меньше 1'
+            )
+        if value > settings.RECIPE_MAX_COOKING_TIME:
+            raise serializers.ValidationError(
+                'Время готовки должно быть не больше 360'
             )
         return value
 
