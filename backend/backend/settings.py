@@ -11,6 +11,11 @@ DEBUG = os.getenv('DEBUG')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
+RECIPE_MIN_COOKING_TIME = 1
+RECIPE_MAX_COOKING_TIME = 360
+INGREDIENT_MIN_VALUE = 1
+
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,15 +1,19 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 
 User = get_user_model()
 
 
 class Ingredient(models.Model):
     name = models.CharField(
-        verbose_name='Название ингредиента', max_length=200
+        verbose_name='Название ингредиента', max_length=200,
+        help_text='Название ингредиента'
     )
     measurement_unit = models.CharField(
-        verbose_name='Единица измерения', max_length=200
+        verbose_name='Единица измерения', max_length=200,
+        help_text='Единица измерения ингредиента'
     )
 
     class Meta:
@@ -21,9 +25,15 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=200)
-    color = models.CharField(max_length=7)
-    slug = models.SlugField(max_length=200)
+    name = models.CharField(
+        max_length=200, verbose_name='Название', help_text='Название тега'
+    )
+    color = models.CharField(
+        max_length=7, verbose_name='Цвет', help_text='Цвет тега'
+    )
+    slug = models.SlugField(
+        max_length=200, verbose_name='Slug', help_text='Slug тега'
+    )
 
     class Meta:
         verbose_name = 'Тэг'
@@ -39,23 +49,41 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор',
+        help_text='Автор рецепта'
     )
     tags = models.ManyToManyField(
-        Tag, through='TagRecipe', related_name='recipes'
+        Tag, through='TagRecipe', related_name='recipes',
+        verbose_name='Теги', help_text='Теги рецепта'
     )
-    name = models.CharField(max_length=200, verbose_name='Название')
-    text = models.TextField(verbose_name='Описание')
-    cooking_time = models.PositiveSmallIntegerField()
+    name = models.CharField(
+        max_length=200, verbose_name='Название', help_text='Название рецепта'
+    )
+    text = models.TextField(
+        verbose_name='Описание', help_text='Описание рецепта'
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления',
+        help_text='Время приготовления в минутах',
+        validators=[
+            MinValueValidator(settings.RECIPE_MIN_COOKING_TIME),
+            MaxValueValidator(settings.RECIPE_MAX_COOKING_TIME)
+        ]
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe',
         related_name='recipes',
         blank=True,
+        verbose_name='Ингредиенты',
+        help_text='Ингредиенты рецепта'
     )
     pub_date = models.DateTimeField(
         auto_now_add=True, verbose_name='Время публикации',
+        help_text='Время публикации'
     )
-    image = models.ImageField()
+    image = models.ImageField(
+        verbose_name='Изображение', help_text='Изображение рецепта'
+    )
 
     class Meta:
         ordering = ('-pub_date',)
@@ -68,10 +96,14 @@ class Recipe(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='subscriptions'
+        User, on_delete=models.CASCADE, related_name='subscriptions',
+        verbose_name='Подписчик',
+        help_text='Пользователь, который подписывается'
     )
     following = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='followers'
+        User, on_delete=models.CASCADE, related_name='followers',
+        verbose_name='Пользователь',
+        help_text='Пользователь на которого подписываются'
     )
 
     class Meta:
@@ -85,8 +117,14 @@ class Follow(models.Model):
 
 
 class TagRecipe(models.Model):
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    tag = models.ForeignKey(
+        Tag, on_delete=models.CASCADE, verbose_name='Теги',
+        help_text='Тег рецепта'
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, verbose_name='Рецепт',
+        help_text='Рецепт'
+    )
 
     def __str__(self):
         return f'{self.tag} {self.recipe}'
@@ -97,14 +135,17 @@ class IngredientRecipe(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Ингредиент в рецепте',
-        related_name='ingredient'
+        related_name='ingredient',
+        help_text='Ингредиент в рецепте'
     )
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, verbose_name='Рецепт',
-        related_name='recipe'
+        related_name='recipe', help_text='Рецепт'
     )
     amount = models.PositiveIntegerField(
-        null=True, verbose_name='Количество ингредиента'
+        null=True, verbose_name='Количество ингредиента',
+        help_text='Количество ингредиента в рецепте',
+        validators=[MinValueValidator(settings.INGREDIENT_MIN_VALUE)]
     )
 
     class Meta:
@@ -118,17 +159,19 @@ class Favorite(models.Model):
         related_name='favorite',
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
+        help_text='Избранный рецепт'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Пользователь',
         related_name='favorite',
+        help_text='Пользователь, который добавил рецепт в избранное'
     )
-    when_added = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-when_added',)
+        ordering = ('-created_at',)
         verbose_name = 'Избранное'
         verbose_name_plural = verbose_name
         unique_together = ('user', 'recipe')
@@ -143,17 +186,19 @@ class ShoppingCart(models.Model):
         related_name='shopping_cart',
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
+        help_text='Рецепт в списке покупок'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Пользователь',
         related_name='shopping_cart',
+        help_text='Пользователь, который добавил рецепт в список покупок'
     )
-    when_added = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-when_added',)
+        ordering = ('-created_at',)
         verbose_name = 'Список покупок'
         verbose_name_plural = verbose_name
         unique_together = ('user', 'recipe')
