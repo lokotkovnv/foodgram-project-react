@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -8,19 +9,17 @@ from foodgram.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
 from foodgram.serializers import (CreateRecipeSerializer, IngredientSerializer,
                                   ShowRecipeSerializer, TagSerializer)
 from rest_framework import permissions, status, viewsets
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from backend.pagination import LimitPageNumberPagination
-from backend.permissions import IsAdminOrReadOnly
+from backend.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permissions = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
     pagination_class = LimitPageNumberPagination
@@ -36,24 +35,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         context.update({'request': self.request})
         return context
 
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.author != request.user:
-            raise PermissionDenied(
-                'You do not have permission to update this recipe.'
-            )
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.author != request.user:
-            return Response(
-                {'detail': ('You do not have permission to delete '
-                            'this recipe.')},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_permissions(self):
+        if self.action in ('update', 'destroy'):
+            permission_classes = (IsAuthorOrReadOnly,)
+        else:
+            permission_classes = (IsAuthenticatedOrReadOnly,)
+        return [permission() for permission in permission_classes]
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -75,13 +62,7 @@ class ShoppingCartAPIView(APIView):
 
     def post(self, request, recipe_id):
         user = request.user
-        try:
-            recipe = Recipe.objects.get(id=recipe_id)
-        except Recipe.DoesNotExist:
-            return Response(
-                {'error': 'Рецепт не найден'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        recipe = get_object_or_404(Recipe, id=recipe_id)
 
         if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
             return Response(
@@ -104,15 +85,9 @@ class ShoppingCartAPIView(APIView):
     def delete(self, request, recipe_id):
         user = request.user
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        try:
-            shopping_cart_item = ShoppingCart.objects.get(
-                user=user, recipe=recipe
-            )
-        except ShoppingCart.DoesNotExist:
-            return Response(
-                {'error': 'Рецепт не найден или уже был удален из корзины.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        shopping_cart_item = get_object_or_404(
+            ShoppingCart, user=user, recipe=recipe
+        )
 
         shopping_cart_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -142,10 +117,11 @@ class DownloadShoppingCartView(APIView):
             shopping_list.append(line)
 
         response = HttpResponse(
-            '\n'.join(shopping_list), content_type='text/plain'
+            '\n'.join(shopping_list),
+            content_type=settings.SHOPPING_CART_CONTENT_TYPE
         )
         response['Content-Disposition'] = (
-            'attachment; filename="shopping_list.txt"'
+            f'attachment; filename="{settings.SHOPPING_CART_FILENAME}"'
         )
         return response
 
@@ -155,13 +131,7 @@ class FavoriteApiView(APIView):
 
     def post(self, request, recipe_id):
         user = request.user
-        try:
-            recipe = Recipe.objects.get(id=recipe_id)
-        except Recipe.DoesNotExist:
-            return Response(
-                {'error': 'Рецепт не найден'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        recipe = get_object_or_404(Recipe, id=recipe_id)
 
         if Favorite.objects.filter(user=user, recipe=recipe).exists():
             return Response(
@@ -184,13 +154,9 @@ class FavoriteApiView(APIView):
     def delete(self, request, recipe_id):
         user = request.user
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        try:
-            shopping_cart_item = Favorite.objects.get(user=user, recipe=recipe)
-        except Favorite.DoesNotExist:
-            return Response(
-                {'error': 'Рецепт не найден или уже был удален из избранных.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        shopping_cart_item = get_object_or_404(
+            Favorite, user=user, recipe=recipe
+        )
 
         shopping_cart_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
