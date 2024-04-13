@@ -4,10 +4,8 @@ from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from foodgram.models import Follow
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from rest_framework.validators import UniqueValidator
 
-SELF_FOLLOW_ERROR = 'Вы не можете подписаться на самого себя.'
-UNIQUE_FOLLOW_ERROR = 'Вы уже подписаны на этого пользователя.'
 INCORRECT_USERNAME_ERROR = (
     'Username должен содержать только буквы, цифры и символы: @ . + - _'
 )
@@ -86,28 +84,9 @@ class FollowSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    def validate(self, data):
-        user = data['user']
-        following = data['following']
-
-        if user == following:
-            raise serializers.ValidationError(SELF_FOLLOW_ERROR)
-
-        if Follow.objects.filter(user=user, following=following).exists():
-            raise serializers.ValidationError(UNIQUE_FOLLOW_ERROR)
-
-        return data
-
     class Meta:
         model = Follow
         fields = ('user', 'following')
-        validators = (
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'following'),
-                message=UNIQUE_FOLLOW_ERROR
-            ),
-        )
 
 
 class UserListSerializer(serializers.ModelSerializer):
