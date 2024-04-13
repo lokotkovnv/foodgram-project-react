@@ -1,24 +1,16 @@
 import os
-
-import django
 import pandas as pd
-from foodgram.models import \
-    Ingredient  # Для запуска скрипта - импортировать после настройки среды
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
-django.setup()
-
-'''
+from django.core.management.base import BaseCommand
 from foodgram.models import Ingredient
-'''
 
 
-class LoadData:
+class Command(BaseCommand):
+    help = 'Load ingredients from CSV file'
 
-    def load_ingredients_from_csv(self):
+    def handle(self, *args, **options):
         csv_file = os.path.join('data', 'ingredients.csv')
         if not os.path.exists(csv_file):
-            print('CSV file does not exist')
+            self.stdout.write(self.style.ERROR('CSV file does not exist'))
             return
 
         df = pd.read_csv(
@@ -31,11 +23,6 @@ class LoadData:
                 measurement_unit=row['measurement_unit'].strip(),
             )
             if created:
-                print(f'Successfully created {ingredient}')
+                self.stdout.write(self.style.SUCCESS(f'Successfully created {ingredient}'))
             else:
-                print(f'{ingredient} already exists')
-
-
-if __name__ == "__main__":
-    loader = LoadData()
-    loader.load_ingredients_from_csv()
+                self.stdout.write(self.style.WARNING(f'{ingredient} already exists'))
