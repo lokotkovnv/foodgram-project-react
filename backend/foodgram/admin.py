@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 from foodgram.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 
@@ -7,11 +8,10 @@ class TagsFilter(admin.SimpleListFilter):
     parameter_name = 'tags'
 
     def lookups(self, request, model_admin):
-        tags = set()
-        for recipe in Recipe.objects.all():
-            for tag in recipe.tags.all():
-                tags.add((tag.id, tag.name))
-        return sorted(tags, key=lambda x: x[1])
+        tags = Tag.objects.annotate(
+            recipe_count=Count('recipes')
+        ).filter(recipe_count__gt=0)
+        return [(tag.id, tag.name) for tag in tags]
 
     def queryset(self, request, queryset):
         if self.value():
@@ -23,6 +23,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'author', 'get_tags_display', 'name', 'get_favorite_count',
     )
     list_filter = ('author', 'tags', 'name',)
+    search_fields = ('author', 'name',)
 
     def get_tags_display(self, obj):
         return ', '.join([tag.name for tag in obj.tags.all()])
@@ -37,10 +38,29 @@ class RecipeAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit',)
     list_filter = ('name', 'measurement_unit',)
+    search_fields = ('name',)
+
+
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color', 'slug',)
+    list_filter = ('name', 'color', 'slug',)
+    search_fields = ('name', 'color', 'slug',)
+
+
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('recipe', 'user',)
+    list_filter = ('recipe', 'user',)
+    search_fields = ('recipe', 'user',)
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('recipe', 'user',)
+    list_filter = ('recipe', 'user',)
+    search_fields = ('recipe', 'user',)
 
 
 admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Tag)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(Favorite)
-admin.site.register(ShoppingCart)
+admin.site.register(Favorite, FavoriteAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)
