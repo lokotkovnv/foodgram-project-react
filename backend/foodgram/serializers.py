@@ -4,6 +4,7 @@ import webcolors
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.db import transaction
 from foodgram.models import (Favorite, Follow, Ingredient, IngredientRecipe,
                              Recipe, ShoppingCart, Tag, TagRecipe)
 from rest_framework import serializers
@@ -18,10 +19,9 @@ class Hex2NameColor(serializers.Field):
 
     def to_internal_value(self, data):
         try:
-            data = webcolors.hex_to_name(data)
+            return webcolors.hex_to_name(data)
         except ValueError:
             raise serializers.ValidationError('Для этого цвета нет имени')
-        return data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -220,35 +220,40 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         author = self.context.get('request').user
-        recipe = Recipe.objects.create(author=author, **validated_data)
-        for ingredient in ingredients_data:
-            ingredient_model = ingredient['id']
-            amount = ingredient['amount']
-            IngredientRecipe.objects.create(
-                ingredient=ingredient_model, recipe=recipe, amount=amount
-            )
 
-        recipe.tags.set(tags_data)
+        with transaction.atomic():
+            recipe = Recipe.objects.create(author=author, **validated_data)
+            for ingredient in ingredients_data:
+                ingredient_model = ingredient['id']
+                amount = ingredient['amount']
+                IngredientRecipe.objects.create(
+                    ingredient=ingredient_model, recipe=recipe, amount=amount
+                )
+            recipe.tags.set(tags_data)
         return recipe
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-        TagRecipe.objects.filter(recipe=instance).delete()
-        IngredientRecipe.objects.filter(recipe=instance).delete()
-        for ingredient in ingredients_data:
-            ingredient_model = ingredient['id']
-            amount = ingredient['amount']
-            IngredientRecipe.objects.create(
-                ingredient=ingredient_model, recipe=instance, amount=amount
-            )
-        instance.name = validated_data.pop('name')
-        instance.text = validated_data.pop('text')
-        if validated_data.get('image') is not None:
-            instance.image = validated_data.pop('image')
-        instance.cooking_time = validated_data.pop('cooking_time')
-        instance.tags.set(tags_data)
-        instance.save()
+
+        with transaction.atomic():
+            TagRecipe.objects.filter(recipe=instance).delete()
+            IngredientRecipe.objects.filter(recipe=instance).delete()
+            for ingredient in ingredients_data:
+                ingredient_model = ingredient['id']
+                amount = ingredient['amount']
+                IngredientRecipe.objects.create(
+                    ingredient=ingredient_model, recipe=instance, amount=amount
+                )
+
+            instance.name = validated_data.pop('name')
+            instance.text = validated_data.pop('text')
+            if validated_data.get('image') is not None:
+                instance.image = validated_data.pop('image')
+            instance.cooking_time = validated_data.pop('cooking_time')
+            instance.tags.set(tags_data)
+            instance.save()
+
         return instance
 
 

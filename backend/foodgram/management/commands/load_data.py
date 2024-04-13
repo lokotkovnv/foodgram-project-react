@@ -1,4 +1,5 @@
 import os
+
 import pandas as pd
 from django.core.management.base import BaseCommand
 from foodgram.models import Ingredient
@@ -23,6 +24,10 @@ class Command(BaseCommand):
                 measurement_unit=row['measurement_unit'].strip(),
             )
             if created:
-                self.stdout.write(self.style.SUCCESS(f'Successfully created {ingredient}'))
+                self.stdout.write(
+                    self.style.SUCCESS(f'Successfully created {ingredient}')
+                )
             else:
-                self.stdout.write(self.style.WARNING(f'{ingredient} already exists'))
+                self.stdout.write(
+                    self.style.WARNING(f'{ingredient} already exists')
+                )
