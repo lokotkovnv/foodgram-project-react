@@ -20,16 +20,15 @@ class CustomUserViewSet(UserViewSet):
     pagination_class = LimitPageNumberPagination
     permission_classes = (AllowAny,)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=('get',))
     def me(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            user = request.user
-            serializer = BasicUserSerializer(
-                user, context={'request': request}
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        user = request.user
+        serializer = BasicUserSerializer(
+            user, context={'request': request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -45,7 +44,7 @@ class CustomUserViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(
-        detail=True, methods=['post'],
+        detail=True, methods=('post',),
         permission_classes=(IsAuthenticated,)
     )
     def subscribe(self, request, id=None):
@@ -53,44 +52,31 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=id)
 
         serializer = FollowSerializer(data={'user': user, 'following': author})
-        if serializer.is_valid():
-            serializer.save()
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-            recipes_limit = int(request.query_params.get('recipes_limit', 0))
-            recipes_queryset = Recipe.objects.filter(
-                author=author
-            )[:recipes_limit] if recipes_limit > 0 else Recipe.objects.filter(
-                author=author
-            )
-            recipes_data = UserRecipeSerializer(
-                recipes_queryset, many=True
-            ).data
+        recipes_limit = int(request.query_params.get('recipes_limit', 0))
+        recipes_queryset = Recipe.objects.filter(
+            author=author
+        )[:recipes_limit] if recipes_limit > 0 else Recipe.objects.filter(
+            author=author
+        )
+        recipes_data = UserRecipeSerializer(recipes_queryset, many=True).data
 
-            user_data = CustomUserSerializer(
-                author, context={'request': request}
-            ).data
-            user_data['recipes'] = recipes_data
-            user_data['recipes_count'] = len(recipes_data)
-            user_data['is_subscribed'] = True
+        user_data = CustomUserSerializer(
+            author, context={'request': request}
+        ).data
+        user_data['recipes'] = recipes_data
+        user_data['recipes_count'] = len(recipes_data)
+        user_data['is_subscribed'] = True
 
-            return Response(user_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(user_data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def del_subscribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(User, id=id)
-
-        try:
-            follow = Follow.objects.get(user=user, following=author)
-        except Follow.DoesNotExist:
-            return Response(
-                {'error': 'Подписка не найдена или уже была удалена.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        follow = get_object_or_404(Follow, user=user, following=author)
 
         follow.delete()
 
