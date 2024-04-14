@@ -103,8 +103,7 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         if self.context.get('use_custom_user_serializer'):
             return CustomUserSerializer(obj.author, context=self.context).data
-        else:
-            return BasicUserSerializer(obj.author, context=self.context).data
+        return BasicUserSerializer(obj.author, context=self.context).data
 
     def get_ingredients(self, obj):
         ingredients_data = IngredientRecipe.objects.filter(recipe=obj)
@@ -177,11 +176,17 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Ингредиенты не должны повторяться'
             )
-        if ingredient_amounts and min(
-            ingredient_amounts
-        ) < settings.INGREDIENT_MIN_VALUE:
+        if not ingredient_amounts:
+            raise serializers.ValidationError(
+                'Нужно добавить количество ингредиентов'
+            )
+        if min(ingredient_amounts) < settings.INGREDIENT_MIN_VALUE:
             raise serializers.ValidationError(
                 'Количество ингредиентов должно быть не меньше 1'
+            )
+        if max(ingredient_amounts) > settings.INGREDIENT_MAX_VALUE:
+            raise serializers.ValidationError(
+                'Количество ингредиентов должно быть не больше 999'
             )
         return value
 
@@ -193,11 +198,13 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     def validate_cooking_time(self, value):
         if value < settings.RECIPE_MIN_COOKING_TIME:
             raise serializers.ValidationError(
-                'Время готовки должно быть не меньше 1'
+                f'Время готовки должно быть не меньше '
+                f'{settings.RECIPE_MIN_COOKING_TIME}'
             )
         if value > settings.RECIPE_MAX_COOKING_TIME:
             raise serializers.ValidationError(
-                'Время готовки должно быть не больше 360'
+                f'Время готовки должно быть не больше '
+                f'{settings.RECIPE_MAX_COOKING_TIME}'
             )
         return value
 

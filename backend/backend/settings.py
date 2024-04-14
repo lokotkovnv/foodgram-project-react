@@ -4,9 +4,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-uxz7oa4xjx7x1hokfz6acup$e)9f1w@_qo$6cvwyyrp^x8f3h')
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
@@ -14,6 +14,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 RECIPE_MIN_COOKING_TIME = 1
 RECIPE_MAX_COOKING_TIME = 360
 INGREDIENT_MIN_VALUE = 1
+INGREDIENT_MAX_VALUE = 999
 SHOPPING_CART_CONTENT_TYPE = 'text/plain'
 SHOPPING_CART_FILENAME = 'shopping_list.txt'
 

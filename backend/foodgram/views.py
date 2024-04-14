@@ -17,6 +17,8 @@ from rest_framework.views import APIView
 from backend.pagination import LimitPageNumberPagination
 from backend.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 
+SHOPPING_CART_CONTENT_TYPE = 'text/plain'
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -118,7 +120,7 @@ class DownloadShoppingCartView(APIView):
 
         response = HttpResponse(
             '\n'.join(shopping_list),
-            content_type=settings.SHOPPING_CART_CONTENT_TYPE
+            content_type=SHOPPING_CART_CONTENT_TYPE
         )
         response['Content-Disposition'] = (
             f'attachment; filename="{settings.SHOPPING_CART_FILENAME}"'

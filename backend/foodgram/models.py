@@ -64,10 +64,10 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
         help_text='Время приготовления в минутах',
-        validators=[
+        validators=(
             MinValueValidator(settings.RECIPE_MIN_COOKING_TIME),
             MaxValueValidator(settings.RECIPE_MAX_COOKING_TIME)
-        ]
+        )
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -107,15 +107,15 @@ class Follow(models.Model):
     )
 
     class Meta:
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
-                fields=['user', 'following'], name='unique_subscription'
+                fields=('user', 'following'), name='unique_subscription'
             ),
             models.CheckConstraint(
                 check=~models.Q(user=models.F('following')),
                 name='not_self_follow'
             )
-        ]
+        )
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
 
@@ -146,10 +146,13 @@ class IngredientRecipe(models.Model):
         Recipe, on_delete=models.CASCADE, verbose_name='Рецепт',
         related_name='recipe', help_text='Рецепт'
     )
-    amount = models.PositiveIntegerField(
+    amount = models.PositiveSmallIntegerField(
         null=True, verbose_name='Количество ингредиента',
         help_text='Количество ингредиента в рецепте',
-        validators=[MinValueValidator(settings.INGREDIENT_MIN_VALUE)]
+        validators=(
+            MinValueValidator(settings.INGREDIENT_MIN_VALUE),
+            MaxValueValidator(settings.INGREDIENT_MAX_VALUE)
+        )
     )
 
     class Meta:
@@ -179,6 +182,11 @@ class Favorite(models.Model):
         verbose_name = 'Избранное'
         verbose_name_plural = verbose_name
         unique_together = ('user', 'recipe')
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe'), name='unique_favorite_item'
+            ),
+        )
 
     def __str__(self):
         return f'{self.user} added {self.recipe}'
@@ -199,13 +207,20 @@ class ShoppingCart(models.Model):
         related_name='shopping_cart',
         help_text='Пользователь, который добавил рецепт в список покупок'
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name='Время создания',
+        help_text='Время создания'
+    )
 
     class Meta:
         ordering = ('-created_at',)
         verbose_name = 'Список покупок'
         verbose_name_plural = verbose_name
-        unique_together = ('user', 'recipe')
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe'), name='unique_shopping_cart_item'
+            ),
+        )
 
     def __str__(self):
         return f'{self.user} added {self.recipe}'
