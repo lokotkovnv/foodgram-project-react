@@ -182,11 +182,13 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             )
         if min(ingredient_amounts) < settings.INGREDIENT_MIN_VALUE:
             raise serializers.ValidationError(
-                'Количество ингредиентов должно быть не меньше 1'
+                f'Количество ингредиентов должно быть не меньше'
+                f'{settings.INGREDIENT_MIN_VALUE}'
             )
         if max(ingredient_amounts) > settings.INGREDIENT_MAX_VALUE:
             raise serializers.ValidationError(
-                'Количество ингредиентов должно быть не больше 999'
+                f'Количество ингредиентов должно быть не больше'
+                f'{settings.INGREDIENT_MAX_VALUE}'
             )
         return value
 
