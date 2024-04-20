@@ -53,7 +53,8 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag, through='TagRecipe', related_name='recipes',
-        verbose_name='Теги', help_text='Теги рецепта'
+        verbose_name='Теги', help_text='Теги рецепта',
+        blank=False
     )
     name = models.CharField(
         max_length=200, verbose_name='Название', help_text='Название рецепта'
@@ -73,7 +74,7 @@ class Recipe(models.Model):
         Ingredient,
         through='IngredientRecipe',
         related_name='recipes',
-        blank=True,
+        blank=False,
         verbose_name='Ингредиенты',
         help_text='Ингредиенты рецепта'
     )
@@ -130,6 +131,10 @@ class TagRecipe(models.Model):
         help_text='Рецепт'
     )
 
+    class Meta:
+        verbose_name = 'Тег рецепта'
+        verbose_name_plural = 'Теги рецепта'
+
     def __str__(self):
         return f'{self.tag} {self.recipe}'
 
@@ -156,8 +161,8 @@ class IngredientRecipe(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Количетсво ингредиента в рецепте'
-        verbose_name_plural = verbose_name
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
 
 
 class Favorite(models.Model):

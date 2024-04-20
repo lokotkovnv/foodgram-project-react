@@ -13,14 +13,30 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 class FollowAdmin(admin.ModelAdmin):
     list_display = (
-        'user', 'following'
-    )
-    list_filter = (
-        'user', 'following'
+        'get_user_username', 'get_user_email',
+        'get_following_username', 'get_following_email',
     )
     search_fields = (
-        'user', 'following'
+        'user__username', 'user__email',
+        'following__username', 'following__email',
     )
+
+    def get_user_username(self, obj):
+        return obj.user.username
+
+    def get_user_email(self, obj):
+        return obj.user.email
+
+    def get_following_username(self, obj):
+        return obj.following.username
+
+    def get_following_email(self, obj):
+        return obj.following.email
+
+    get_user_username.short_description = 'Подписчик'
+    get_user_email.short_description = 'Email подписчика'
+    get_following_username.short_description = 'Подписан на'
+    get_following_email.short_description = 'Email'
 
 
 admin.site.unregister(User)
