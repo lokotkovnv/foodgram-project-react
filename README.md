@@ -13,6 +13,5 @@
 # Проект реализован в трех контейнерах загруженных на Dockerhub, собираемых в сеть на удаленном сервере через GitHub Actions
 # Данные для проверки:
 # Домен: https://lokotkovfoodgram.zapto.org/
-# admin_username: admin
-# admin_email: admin@admin.com
+# admin_username: foodgram_admin
 # admin_pass: foodgram_password

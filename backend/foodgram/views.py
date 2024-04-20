@@ -25,6 +25,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
     pagination_class = LimitPageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
 
     def get_serializer_class(self):
         method = self.request.method
@@ -36,13 +37,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context.update({'request': self.request})
         return context
-
-    def get_permissions(self):
-        if self.action in ('update', 'destroy'):
-            permission_classes = (IsAuthorOrReadOnly,)
-        else:
-            permission_classes = (IsAuthenticatedOrReadOnly,)
-        return [permission() for permission in permission_classes]
 
 
 class TagViewSet(viewsets.ModelViewSet):
